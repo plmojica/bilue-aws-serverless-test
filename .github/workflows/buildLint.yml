@@ -1,0 +1,43 @@
+name: Build, Lint, Test
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    Build-Lint-Test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Pin Node to 14
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 16
+
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+
+            - uses: actions/cache@v2
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
+
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+
+            - name: Install Node Modules
+              run: yarn install
+
+            - name: Build lint and test
+              env:
+                  OPEN_WEATHER_API_KEY: ${{ secrets.OPEN_WEATHER_API_KEY }}
+                  OPEN_WEATHER_API_URL: "https://api.openweathermap.org/data/2.5/weather"
+              run: |
+                  yarn lint
+                  yarn test

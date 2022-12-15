@@ -1,0 +1,28 @@
+service: serverless-test
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  stage: development
+  lambdaHashingVersion: '20201221'
+  region: ap-southeast-2
+  timeout: 900
+  environment:
+    ALLOWS_INSECURE_SSL_CERTIFICATES: true
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+functions:
+  weatherApi:
+    handler: src/handlers/weather.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /weather
+    environment:
+      WEATHER_API_KEY: ${env:WEATHER_API_KEY}
